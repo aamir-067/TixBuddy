@@ -12,8 +12,8 @@ contract Ticket {
         address owner;
     }
 
-    address immutable developer;
-    uint totalEvents;
+    address public immutable developer;
+    uint public totalEvents;
     mapping(uint => Event) public allEvents;
     mapping(address => mapping(uint => uint)) tktHolders;
 
@@ -28,7 +28,7 @@ contract Ticket {
         uint _totalTkts,
         uint _tktPrice
     ) public payable {
-        require(msg.value >= 1000000 gwei);
+        require(msg.value >= 1000000 gwei, "not enough registration fee");
         // require(block.timestamp < _time);
         Event memory eve = Event(
             _name,
@@ -64,7 +64,7 @@ contract Ticket {
         string memory _eventName,
         uint _tkts
     ) public payable {
-        require(EventExist(_eventIndex, _eventName) == true); // if the event Exist.
+        require(EventExist(_eventIndex, _eventName) == true, "not exist"); // if the event Exist.
 
         Event storage temp = allEvents[_eventIndex];
         require(temp.availTkts >= _tkts, "avali tkts issue");
