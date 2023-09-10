@@ -9,18 +9,8 @@
 
 2. ignore the Lock contract its in the broiler plate by default.
 
+## In this Commit:
+
+added two new features to contract so that people can search event by name and by id as they wish to search.
+
 ## `Project Status : Not completed yet.`
-
-## Sample Hardhat Project
-
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```

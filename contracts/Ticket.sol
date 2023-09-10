@@ -12,16 +12,18 @@ contract Ticket {
         address owner;
     }
 
-    address public immutable developer;
+    address public immutable developer; // checked
     uint public totalEvents;
     mapping(uint => Event) public allEvents;
-    mapping(address => mapping(uint => uint)) tktHolders;
+    mapping(address => mapping(uint => uint)) public tktHolders;
 
     constructor() {
+        // checked
         developer = msg.sender;
     }
 
     function createEvent(
+        //checked
         string memory _name,
         string memory _venue,
         uint _time,
@@ -43,6 +45,28 @@ contract Ticket {
         totalEvents += 1;
     }
 
+    // ? : to check event by name only.
+    function searchEventByName(
+        string memory _name
+    ) public view returns (Event memory) {
+        for (uint i = 0; i < totalEvents; i++) {
+            Event memory temp = allEvents[i];
+            if (
+                keccak256(abi.encodePacked(_name)) ==
+                keccak256(abi.encodePacked(temp.name))
+            ) {
+                return temp;
+            }
+        }
+        return Event("", "", block.timestamp, 0, 0, 0, msg.sender);
+    }
+
+    // ? . to check event by id only
+    function searchEventById(uint _id) public view returns (Event memory) {
+        require(_id < totalEvents, "this event does not exists");
+        return allEvents[_id];
+    }
+
     function EventExist(
         uint _eventIndex,
         string memory _eventName
@@ -60,6 +84,7 @@ contract Ticket {
     }
 
     function purchaseTkt(
+        // checked
         uint _eventIndex,
         string memory _eventName,
         uint _tkts
@@ -74,6 +99,7 @@ contract Ticket {
     }
 
     function checkTickets(
+        // checked
         address user,
         uint eventId
     ) public view returns (uint) {
@@ -83,6 +109,7 @@ contract Ticket {
     }
 
     function TransferTickets(
+        //checked
         address to,
         uint quantity,
         uint _eventId,
