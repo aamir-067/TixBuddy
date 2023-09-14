@@ -1,19 +1,10 @@
-const hre = require('hardhat');
-async function main() {
-    const lock = await hre.ethers.deployContract("Lock");
-
-    await lock.waitForDeployment();
-
-    console.log(
-        `Lock with ${ethers.formatEther(
-            lockedAmount
-        )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.target}`
-    );
+const deploy = async () => {
+    // const [deployer] = await ethers.getSigners();
+    const MyContract = await ethers.getContractFactory('Ticket');
+    const deployContract = await MyContract.deploy();
+    let adr = await deployContract.target;
+    console.log(adr);
 }
-
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-});
+deploy().then(() => {
+    process.exit(0);
+})
