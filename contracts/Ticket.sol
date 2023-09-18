@@ -1,8 +1,9 @@
-// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
 contract Ticket {
     struct Event {
+        uint id;
         string name;
         string venue;
         uint256 time;
@@ -22,6 +23,20 @@ contract Ticket {
         developer = msg.sender;
     }
 
+    // Only for developer of the contract
+    uint myBalance;
+
+    function withdrawBalance(uint _bal) public {
+        require(_bal <= myBalance, "insufficeint Balance");
+        payable(developer).transfer(_bal);
+    }
+
+    function ContractBalance() public view returns (uint) {
+        return myBalance;
+    }
+
+    // for total events call TotalEvents variable.
+
     function createEvent(
         //checked
         string memory _name,
@@ -31,8 +46,9 @@ contract Ticket {
         uint _tktPrice
     ) public payable {
         require(msg.value >= 1000000 gwei, "not enough registration fee");
-        // require(block.timestamp < _time);
+        require(block.timestamp < _time);
         Event memory eve = Event(
+            totalEvents,
             _name,
             _venue,
             _time,
@@ -43,6 +59,7 @@ contract Ticket {
         );
         allEvents[totalEvents] = eve;
         totalEvents += 1;
+        myBalance += msg.value;
     }
 
     // ? : to check event by name only.
@@ -58,12 +75,14 @@ contract Ticket {
                 return temp;
             }
         }
-        return Event("", "", block.timestamp, 0, 0, 0, msg.sender);
+        return Event(0, "", "", 0, 0, 0, 0, msg.sender);
     }
 
     // ? . to check event by id only
     function searchEventById(uint _id) public view returns (Event memory) {
-        require(_id < totalEvents, "this event does not exists");
+        if (_id < totalEvents) {
+            return Event(0, "", "", 0, 0, 0, 0, msg.sender);
+        }
         return allEvents[_id];
     }
 
@@ -117,6 +136,8 @@ contract Ticket {
     ) public {
         require(EventExist(_eventId, _eventName) == true); // this event exists
         require(tktHolders[msg.sender][_eventId] >= quantity); // enough tkts available
+        Event memory tempEvent = allEvents[_eventId];
+        require(tempEvent.time > block.timestamp); // to send a valid tickets.
         tktHolders[msg.sender][_eventId] -= quantity;
         tktHolders[to][_eventId] += quantity;
     }
