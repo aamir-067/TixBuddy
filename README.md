@@ -9,6 +9,8 @@
 
 2. ignore the Lock contract its in the broiler plate by default.
 
+3. The client folder is not updating in the github commits so uploaded it explicitly to visit [click here](https://github.com/aamir-067/TixBuddy-Client)
+
 ## In this Commit:
 
 added two new features to contract so that people can search event by name and by id as they wish to search.

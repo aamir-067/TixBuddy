@@ -80,7 +80,7 @@ contract Ticket {
 
     // ? . to check event by id only
     function searchEventById(uint _id) public view returns (Event memory) {
-        if (_id < totalEvents) {
+        if (_id >= totalEvents) {
             return Event(0, "", "", 0, 0, 0, 0, msg.sender);
         }
         return allEvents[_id];
