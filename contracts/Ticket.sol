@@ -11,6 +11,8 @@ contract Ticket {
         uint availTkts;
         uint tktPrice;
         address owner;
+        bool isWithdraw;
+        address[] holders;
     }
 
     address public immutable developer; // checked
@@ -44,9 +46,10 @@ contract Ticket {
         uint _time,
         uint _totalTkts,
         uint _tktPrice
-    ) public payable {
+    ) public payable returns (bool) {
         require(msg.value >= 1000000 gwei, "not enough registration fee");
         require(block.timestamp < _time);
+        address[] memory temp;
         Event memory eve = Event(
             totalEvents,
             _name,
@@ -55,11 +58,14 @@ contract Ticket {
             _totalTkts,
             _totalTkts,
             _tktPrice,
-            msg.sender
+            msg.sender,
+            false,
+            temp
         );
         allEvents[totalEvents] = eve;
         totalEvents += 1;
         myBalance += msg.value;
+        return true;
     }
 
     // ? : to check event by name only.
@@ -75,13 +81,15 @@ contract Ticket {
                 return temp;
             }
         }
-        return Event(0, "", "", 0, 0, 0, 0, msg.sender);
+        address[] memory temp2;
+        return Event(0, "", "", 0, 0, 0, 0, msg.sender, false, temp2);
     }
 
     // ? . to check event by id only
     function searchEventById(uint _id) public view returns (Event memory) {
         if (_id >= totalEvents) {
-            return Event(0, "", "", 0, 0, 0, 0, msg.sender);
+            address[] memory temp;
+            return Event(0, "", "", 0, 0, 0, 0, msg.sender, false, temp);
         }
         return allEvents[_id];
     }
@@ -133,22 +141,38 @@ contract Ticket {
         uint quantity,
         uint _eventId,
         string memory _eventName
-    ) public {
+    ) public returns (bool) {
         require(EventExist(_eventId, _eventName) == true); // this event exists
         require(tktHolders[msg.sender][_eventId] >= quantity); // enough tkts available
         Event memory tempEvent = allEvents[_eventId];
         require(tempEvent.time > block.timestamp); // to send a valid tickets.
         tktHolders[msg.sender][_eventId] -= quantity;
         tktHolders[to][_eventId] += quantity;
+        return true;
     }
 
-    function getSoldtktAmount(uint eventId, string memory eventName) external {
+    function getSoldtktAmount(
+        uint eventId,
+        string memory eventName
+    ) external returns (bool) {
         require(EventExist(eventId, eventName) == true);
-        Event memory temp = allEvents[eventId];
+        Event storage temp = allEvents[eventId];
         require(block.timestamp > temp.time); // only if the event is completed
         require(temp.owner == msg.sender);
-        // todo : make the tikets to 0 in the holders address of the event eventId
+        require(temp.isWithdraw == false, "you already withdraw the amount");
+        temp.isWithdraw = true;
         uint amount = (temp.totalTkts - temp.availTkts) * temp.tktPrice;
-        payable(address(temp.owner)).transfer(amount);
+        address owner = temp.owner;
+        uint eveId = temp.id;
+        // remove the tkts from holders addresses.
+        for (uint i; i < temp.holders.length; i++) {
+            address tempAddress = temp.holders[i];
+            delete tktHolders[tempAddress][temp.id];
+        }
+        // now remove the event from the mapping.
+        delete allEvents[eveId];
+        // now send the amount to the owner.
+        payable(address(owner)).transfer(amount);
+        return true;
     }
 }
