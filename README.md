@@ -15,4 +15,4 @@
 
 added two new features to contract so that people can search event by name and by id as they wish to search.
 
-## `Project Status : Not completed yet.`
+## `Project Status : Yes completed.`

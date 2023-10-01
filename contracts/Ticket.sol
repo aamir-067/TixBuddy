@@ -110,6 +110,16 @@ contract Ticket {
         return false;
     }
 
+    function checkTickets(
+        // checked
+        address user,
+        uint eventId
+    ) public view returns (uint) {
+        require(eventId < totalEvents);
+        uint temp = tktHolders[user][eventId];
+        return temp;
+    }
+
     function purchaseTkt(
         // checked
         uint _eventIndex,
@@ -121,18 +131,23 @@ contract Ticket {
         Event storage temp = allEvents[_eventIndex];
         require(temp.availTkts >= _tkts, "avali tkts issue");
         require(temp.tktPrice * _tkts <= msg.value, "payament issue"); // enough money sent
+        if (checkTickets(msg.sender, _eventIndex) == 0) {
+            temp.holders.push(msg.sender);
+        }
         temp.availTkts -= _tkts;
         tktHolders[msg.sender][_eventIndex] += _tkts;
     }
 
-    function checkTickets(
-        // checked
-        address user,
-        uint eventId
-    ) public view returns (uint) {
-        require(eventId < totalEvents);
-        uint temp = tktHolders[user][eventId];
-        return temp;
+    function removeHolder(uint _eventId, address _addressToRemove) public {
+        Event storage eventInstance = allEvents[_eventId];
+        address[] storage holders = eventInstance.holders;
+        for (uint i = 0; i < holders.length; i++) {
+            if (holders[i] == _addressToRemove) {
+                holders[i] = holders[holders.length - 1];
+                holders.pop();
+                break;
+            }
+        }
     }
 
     function TransferTickets(
@@ -144,9 +159,25 @@ contract Ticket {
     ) public returns (bool) {
         require(EventExist(_eventId, _eventName) == true); // this event exists
         require(tktHolders[msg.sender][_eventId] >= quantity); // enough tkts available
-        Event memory tempEvent = allEvents[_eventId];
+        Event storage tempEvent = allEvents[_eventId];
         require(tempEvent.time > block.timestamp); // to send a valid tickets.
+
         tktHolders[msg.sender][_eventId] -= quantity;
+        if (checkTickets(msg.sender, _eventId) == 0) {
+            for (uint i; i < tempEvent.holders.length; i++) {
+                if (tempEvent.holders[i] == msg.sender) {
+                    tempEvent.holders[i] = tempEvent.holders[
+                        tempEvent.holders.length - 1
+                    ];
+                    tempEvent.holders.pop();
+                    break;
+                }
+            }
+        }
+
+        if (checkTickets(to, _eventId) == 0) {
+            tempEvent.holders.push(to);
+        }
         tktHolders[to][_eventId] += quantity;
         return true;
     }
